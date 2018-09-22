@@ -15,7 +15,7 @@ contract StarNotary is ERC721Token {
     mapping(uint256 => bool) starsTaken;
 
     modifier onlyOwnerOf(uint256 token) {
-        require(ownerOf(token) == msg.sender, "Caller doesn't own this token");
+        require(ownerOf(token) == msg.sender, "caller doesn't own this token");
         _;
     }
     function createStar(string name,string story, string dec, string mag, string cent, uint tokenId ) public {
@@ -35,6 +35,7 @@ contract StarNotary is ERC721Token {
 
     function buyStar(uint256 tokenId) public payable {
         uint256 starCost = starsForSale[tokenId];
+        require(ownerOf(tokenId) != msg.sender, "You already own this star");
         require(starCost > 0, "Star is not for sale");
         require(msg.value >= starCost, "Insufficient ethers");
         clearPreviousState(tokenId);
