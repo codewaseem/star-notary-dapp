@@ -1,4 +1,4 @@
-class StarNotaryWeb3Interactor {
+class StarNotaryHelper {
 
     constructor(web3, abi, contractAddress) {
         this.web3 = web3;
