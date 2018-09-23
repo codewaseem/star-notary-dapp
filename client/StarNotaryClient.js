@@ -1,9 +1,27 @@
-class StarNotaryHelper {
+import { starNotaryAbi, starNotaryContractAddress } from "./constants";
+import Web3 from 'web3';
+const STAR_PROPS_NAMES = Object.assign({}, ["name", "story", "dec", "mag", "cent"]);
 
-    constructor(web3, abi, contractAddress) {
-        this.web3 = web3;
-        let Contract = this.web3.eth.contract(abi);
-        this.contract = Contract.at(contractAddress);
+if (typeof web3 !== 'undefined') {
+    web3 = new Web3(web3.currentProvider);
+} else {
+    // set the provider you want from Web3.providers
+    web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+}
+
+class StarNotaryClient {
+    constructor() {
+        let contract = web3.eth.contract(starNotaryAbi);
+        this.contract = contract.at(starNotaryContractAddress);
+    }
+    
+    getAccounts() {
+        return new Promise((resolve, reject) => {
+            web3.eth.getAccounts((error, accounts) => {
+                if(error) reject(error);
+                else resolve(accounts);
+            });
+        });
     }
 
     createStar(name, story, dec, mag, cent, tokenId) {
@@ -38,16 +56,22 @@ class StarNotaryHelper {
                     else {
                         let starsInfo = [];
                         for (let event of events) {
-                            starsInfo.push(await this.getStarInfoByTokenId(Number(event.args._tokenId)));
+                            let id = Number(event.args._tokenId);
+                            let star = await this.getStarInfoByTokenId(id);
+                            let starObj = star.reduce((obj, starProperty, index) => {
+                                obj[STAR_PROPS_NAMES[index]] = starProperty;
+                                return obj;
+                            }, {id});
+                            starsInfo.push(starObj);
                         }
                         resolve(starsInfo);
                     }
                 });
-            } catch(e) {
+            } catch (e) {
                 reject("Something went wrong while getting stars");
             }
         });
     }
-
-
 }
+
+export default new StarNotaryClient();
