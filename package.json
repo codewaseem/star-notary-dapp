@@ -1,0 +1,13 @@
+{
+  "name": "star_notary_dapp",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "<alphawaseem@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "start": "./node_modules/parcel-bundler/bin/cli.js index.html"
+  },
+  "devDependencies": {
+    "parcel-bundler": "^1.9.7"
+  }
+}
