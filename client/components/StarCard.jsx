@@ -6,8 +6,7 @@ const StarCard = ({ star }) => {
         <div className="star-card" style={{ background: `linear-gradient(0deg,rgba(0,0,0,0.9),rgba(0,0,0,0.8)), url(${StarIcon})`, backgroundRepeat: "round", backgroundSize: "cover" }} >
 
             <div>
-                <h2 className="star-info-heading">Star Info</h2>
-                <p className="star-id">#{star.id}</p>
+                <h2 className="star-info-heading">Star Info <span className="star-id">(#{star.id})</span> </h2>
                 <div className="star-name">
                     <h3>Name</h3>
                     <p>{star.name}</p>
