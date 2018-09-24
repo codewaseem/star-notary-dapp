@@ -14,11 +14,11 @@ class StarNotaryClient {
         let contract = web3.eth.contract(starNotaryAbi);
         this.contract = contract.at(starNotaryContractAddress);
     }
-    
+
     getAccounts() {
         return new Promise((resolve, reject) => {
             web3.eth.getAccounts((error, accounts) => {
-                if(error) reject(error);
+                if (error) reject(error);
                 else resolve(accounts);
             });
         });
@@ -46,11 +46,10 @@ class StarNotaryClient {
         });
     }
 
-    getAllStarsInfoFor(address) {
+    getTransferEvents(filterIndexedValues = {}, filter = { fromBlock: 0, toBlock: "latest" }) {
         return new Promise((resolve, reject) => {
             try {
-                const filter = { fromBlock: 0, toBlock: "latest", address };
-                let event = this.contract.Transfer(null, filter);
+                let event = this.contract.Transfer(filterIndexedValues, filter);
                 event.get(async (error, events) => {
                     if (error) reject(error);
                     else {
@@ -61,16 +60,23 @@ class StarNotaryClient {
                             let starObj = star.reduce((obj, starProperty, index) => {
                                 obj[STAR_PROPS_NAMES[index]] = starProperty;
                                 return obj;
-                            }, {id});
+                            }, { id, owner: event.args._to });
                             starsInfo.push(starObj);
                         }
                         resolve(starsInfo);
                     }
                 });
             } catch (e) {
-                reject("Something went wrong while getting stars");
+                reject("Something went wrong while getting the transfer events");
             }
         });
+    }
+    getAllStarsOfOwner(address) {
+        return this.getTransferEvents({ _to: address });
+    }
+
+    getAllStarsInBlockChain() {
+        return this.getTransferEvents();
     }
 }
 
