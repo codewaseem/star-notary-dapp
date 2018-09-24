@@ -46,7 +46,7 @@ class StarNotaryClient {
         });
     }
 
-    getTransferEvents(filterIndexedValues = {}, filter = { fromBlock: 0, toBlock: "latest" }) {
+    getStarsInfo(filterIndexedValues = {}, filter = { fromBlock: 0, toBlock: "latest" }) {
         return new Promise((resolve, reject) => {
             try {
                 let event = this.contract.Transfer(filterIndexedValues, filter);
@@ -57,10 +57,11 @@ class StarNotaryClient {
                         for (let event of events) {
                             let id = Number(event.args._tokenId);
                             let star = await this.getStarInfoByTokenId(id);
+                            let starPrice = await this.starsForSale(id);
                             let starObj = star.reduce((obj, starProperty, index) => {
                                 obj[STAR_PROPS_NAMES[index]] = starProperty;
                                 return obj;
-                            }, { id, owner: event.args._to });
+                            }, { id, owner: event.args._to, price: Number(web3.fromWei(starPrice, "ether")) });
                             starsInfo.push(starObj);
                         }
                         resolve(starsInfo);
@@ -72,11 +73,22 @@ class StarNotaryClient {
         });
     }
     getAllStarsOfOwner(address) {
-        return this.getTransferEvents({ _to: address });
+        return this.getStarsInfo({ _to: address });
+    }
+
+    starsForSale(tokenId) {
+        return new Promise((resolve, reject) => {
+            this.contract.starsForSale(tokenId, (error, result) => {
+                if (error) reject(error);
+                else {
+                    resolve(result);
+                }
+            });
+        });
     }
 
     getAllStarsInBlockChain() {
-        return this.getTransferEvents();
+        return this.getStarsInfo();
     }
 }
 

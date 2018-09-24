@@ -15,6 +15,7 @@ class StarCard extends React.Component {
 
         this.toggleForm();
     }
+
     renderStarInfo(star, isStarOwner) {
         return (
             <div className="star-card" style={{ background: `linear-gradient(0deg,rgba(0,0,0,0.9),rgba(0,0,0,0.8)), url(${StarIcon})`, backgroundRepeat: "round", backgroundSize: "cover" }} >
@@ -23,6 +24,12 @@ class StarCard extends React.Component {
                     <div className="star-name">
                         <h3>Name</h3>
                         <p>{star.name}</p>
+                        {star.price > 0 && (
+                            <React.Fragment>
+                                <h3>Star is for sale at</h3>
+                                <p>{star.price} ETH</p>
+                            </React.Fragment>
+                        )}
                     </div>
                     <div className="star-story">
                         <h3>Story</h3>
