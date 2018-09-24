@@ -1,19 +1,51 @@
 import React from "react";
 import StarIcon from "./star.svg";
+import starNotaryClient from "../StarNotaryClient";
 
 class StarCard extends React.Component {
-    constructor() {
-        super();
+    constructor(props) {
+        super(props);
         this.state = {
             showForm: false,
-            saleFor: 0
+            saleFor: props.star.price || 0
         };
     }
 
-    putStarForSale(e) {
+    async putStarForSale(e) {
         e.preventDefault();
-
+        let tx = await starNotaryClient.putStarForSale(this.props.star.id, this.state.saleFor);
+        this.txWatchId = setInterval(async () => {
+            let txReciept = await starNotaryClient.getTransactionReceipt(tx);
+            if (txReciept) {
+                clearInterval(this.txWatchId);
+                if (txReciept.status == "0x1") {
+                    alert("Transaction success. Page will be reloaded to reflect changes in the UI");
+                    location.reload();
+                } else if (txReciept.status == "0x0") {
+                    alert("Something went wrong");
+                }
+            }
+        }, 1000);
+        alert("You will be alerted soon when transaction gets completed")
         this.toggleForm();
+    }
+
+    async buyStar() {
+        let { id, price } = this.props.star;
+        let tx = await starNotaryClient.buyStar(id, price);
+        this.txWatchId = setInterval(async () => {
+            let txReciept = await starNotaryClient.getTransactionReceipt(tx);
+            if (txReciept) {
+                clearInterval(this.txWatchId);
+                if (txReciept.status == "0x1") {
+                    alert("Transaction success. Page will be reloaded to reflect changes in the UI");
+                    location.reload();
+                } else if (txReciept.status == "0x0") {
+                    alert("Something went wrong");
+                }
+            }
+        }, 1000);
+        alert("You will be alerted soon when transaction gets completed")
     }
 
     renderStarInfo(star, isStarOwner) {
@@ -43,7 +75,7 @@ class StarCard extends React.Component {
                     </div>
                     {isStarOwner ?
                         <button onClick={this.toggleForm.bind(this)} className="sell-button">Sell</button> :
-                        <button onClick={this.toggleForm.bind(this)} className="sell-button">Buy</button>
+                        star.price > 0 && <button onClick={this.buyStar.bind(this)} className="sell-button">Buy</button>
                     }
                 </div>
             </div >
@@ -58,6 +90,8 @@ class StarCard extends React.Component {
     toggleForm() {
         this.setState((prevState) => ({ showForm: !prevState.showForm }))
     }
+
+
     renderSaleForm(star) {
         return (
             <div className="sell-form-div" onClick={this.toggleForm.bind(this)}>

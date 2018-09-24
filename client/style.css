@@ -110,3 +110,23 @@ html,body,#app {
     margin: auto;   
     width: 80%;
 }
+
+.add-form {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    width: 300px;
+    background: rgba(0,0,0,0.7);
+    color: white;
+    margin: 20px;
+    font-size: 22px;
+}
+
+.add-form > * {
+    padding: 5px;
+}
+
+.add-form > label {
+    display: flex;
+    justify-content: space-between;
+}

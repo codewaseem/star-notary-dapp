@@ -25,8 +25,9 @@ class StarNotaryClient {
     }
 
     createStar(name, story, dec, mag, cent, tokenId) {
+        let address = web3.eth.accounts[0];
         return new Promise((resolve, reject) => {
-            this.contract.createStar(name, story, dec, mag, cent, tokenId, (error, result) => {
+            this.contract.createStar(name, story, dec, mag, cent, tokenId, { from: address }, (error, result) => {
                 if (error) reject(error);
                 else resolve(result);
             });
@@ -34,7 +35,26 @@ class StarNotaryClient {
     }
 
     onStarCreated(cb) {
-        this.contract.Transfer(null, { address: this.web3.eth.accounts[0] }, cb);
+        this.contract.Transfer(null, { address: web3.eth.accounts[0] }, cb);
+    }
+
+    putStarForSale(id, price) {
+        let address = web3.eth.accounts[0];
+        return new Promise((resolve, reject) => {
+            this.contract.putStarUpForSale(id, web3.toWei(price), { from: address }, (error, result) => {
+                if (error) reject(error);
+                else resolve(result);
+            });
+        });
+    }
+
+    getTransactionReceipt(txHash) {
+        return new Promise((resolve, reject) => {
+            web3.eth.getTransactionReceipt(txHash, (error, result) => {
+                if (error) reject(error)
+                else resolve(result);
+            });
+        });
     }
 
     getStarInfoByTokenId(tokenId) {
@@ -54,16 +74,22 @@ class StarNotaryClient {
                     if (error) reject(error);
                     else {
                         let starsInfo = [];
+                        let idsAdded = {};
+                        events = events.reverse();
                         for (let event of events) {
                             let id = Number(event.args._tokenId);
+                            if (idsAdded[id]) continue;
                             let star = await this.getStarInfoByTokenId(id);
                             let starPrice = await this.starsForSale(id);
+                            let owner = await this.ownerOf(id);
                             let starObj = star.reduce((obj, starProperty, index) => {
                                 obj[STAR_PROPS_NAMES[index]] = starProperty;
                                 return obj;
-                            }, { id, owner: event.args._to, price: Number(web3.fromWei(starPrice, "ether")) });
+                            }, { id, owner, price: Number(web3.fromWei(starPrice, "ether")) });
                             starsInfo.push(starObj);
+                            idsAdded[id] = true;
                         }
+                        console.log(starsInfo.length);
                         resolve(starsInfo);
                     }
                 });
@@ -72,8 +98,13 @@ class StarNotaryClient {
             }
         });
     }
-    getAllStarsOfOwner(address) {
-        return this.getStarsInfo({ _to: address });
+    async getAllStarsOfOwner() {
+        let address = web3.eth.accounts[0];
+        let stars = await this.getStarsInfo({ _to: address });
+        stars = stars.filter((star => {
+            return star.owner == address
+        }));
+        return stars;
     }
 
     starsForSale(tokenId) {
@@ -87,8 +118,30 @@ class StarNotaryClient {
         });
     }
 
+    ownerOf(tokenId) {
+        return new Promise((resolve, reject) => {
+            this.contract.ownerOf(tokenId, (error, result) => {
+                if (error) reject(error);
+                else {
+                    resolve(result);
+                }
+            });
+        });
+    }
+
     getAllStarsInBlockChain() {
         return this.getStarsInfo();
+    }
+
+    buyStar(tokenId, price) {
+        let priceInWei = web3.toWei(price);
+        let address = web3.eth.accounts[0];
+        return new Promise((resolve, reject) => {
+            this.contract.buyStar(tokenId, { from: address, value: priceInWei }, (error, result) => {
+                if (error) reject(error);
+                else resolve(result);
+            });
+        });
     }
 }
 
