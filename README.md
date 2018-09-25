@@ -39,3 +39,5 @@ npm install
     ```
     truffle test/StarNotaryTest.js
     ```
+
+## Transaction, contract hashes are in hashesDetails.txt

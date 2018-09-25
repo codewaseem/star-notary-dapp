@@ -1,0 +1,11 @@
+Contract Address
+0xe867dfD4122c9b958a5A2E0BcE511AEa23960396
+
+Contract Hash
+0x2b1d6d75921f68463add38aaf9fed36b7a27458a5fe88c3b8cbed50793951af7
+
+Star tokenId
+1537858888902
+
+New Star Transaction Hash
+0x4362ce951fd2861a60b163bf9b08d630308f98dd35a13edf6f292a08f80d5e1d
