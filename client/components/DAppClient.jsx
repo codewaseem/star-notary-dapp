@@ -1,12 +1,13 @@
 import React from "react";
 import starNotaryClient from "../StarNotaryClient";
 import StarCard from "./StarCard";
-
+import loader from "./loading.gif";
 
 class DAppClient extends React.Component {
     constructor() {
         super();
         this.state = {
+            showLoader: true,
             allStars: [],
             ownerStars: [],
             addForm: {
@@ -17,6 +18,10 @@ class DAppClient extends React.Component {
                 cent: ""
             }
         }
+    }
+
+    showLoader(toShow = true) {
+        this.setState(() => ({ showLoader: toShow }));
     }
 
     onChange(e) {
@@ -33,10 +38,30 @@ class DAppClient extends React.Component {
     async getStarsInfo() {
         let ownerStars = await starNotaryClient.getAllStarsOfOwner();
         let allStars = await starNotaryClient.getAllStarsInBlockChain();
-        this.setState(() => ({ ownerStars, allStars }));
+        this.setState(() => ({ ownerStars, allStars, showLoader: false }));
     }
     async componentDidMount() {
         this.getStarsInfo();
+    }
+
+    waitForTransaction(tx) {
+        alert("You will be alerted soon when transaction gets completed");
+        this.showLoader(true);
+        console.log("HERE");
+        this.txWatchId = setInterval(async () => {
+            let txReciept = await starNotaryClient.getTransactionReceipt(tx);
+            console.log(this.state.showLoader);
+            if (txReciept) {
+                clearInterval(this.txWatchId);
+                if (txReciept.status == "0x1") {
+                    alert("Transaction success. Page will be reloaded to reflect changes in the UI");
+                    this.showLoader(false);
+                    location.reload();
+                } else if (txReciept.status == "0x0") {
+                    alert("Something went wrong");
+                }
+            }
+        }, 1000);
     }
 
     async addStar(e) {
@@ -45,28 +70,31 @@ class DAppClient extends React.Component {
         if (name && story && dec && mag && cent) {
             let tokenId = Date.now();
             let tx = await starNotaryClient.createStar(name, story, dec, mag, cent, tokenId);
-            this.txWatchId = setInterval(async () => {
-                let txReciept = await starNotaryClient.getTransactionReceipt(tx);
-                if (txReciept) {
-                    clearInterval(this.txWatchId);
-                    if (txReciept.status == "0x1") {
-                        alert("Transaction success. Page will be reloaded to reflect changes in the UI");
-                        location.reload();
-                    } else if (txReciept.status == "0x0") {
-                        alert("Something went wrong");
-                    }
-                }
-            }, 1000);
-            alert("You will be alerted soon when transaction gets completed")
-
+            this.waitForTransaction(tx);
         } else {
             alert("Please fill all the details");
         }
     }
 
+    renderLoader() {
+
+        return (<div id="loader" style={{
+            position: "fixed",
+            left: 0,
+            top: 0,
+            zIndex: 999,
+            width: "100%",
+            height: "100%",
+            overflow: "visible", background: `rgba(20,20,20,0.9) url(${loader}) no-repeat center center`
+        }}>
+            <h3 style={{ font: "22px", color: "white", position: "absolute", top: "60%", left: "50%", transform: "translate(-50%)" }}>Please wait...</h3>
+        </div>);
+    }
+
     render() {
         return (
             <div className="dapp">
+                {this.state.showLoader && this.renderLoader()}
                 <h1>Star Notary</h1>
                 <div className="all-stars">
                     <h2>All Stars</h2>
@@ -74,7 +102,7 @@ class DAppClient extends React.Component {
                         {(this.state.allStars.length <= 0) ?
                             <div>There are no stars in the blockchain.</div> :
                             this.state.allStars.map((star, index) => {
-                                return <StarCard star={star} key={index} isStarOwner={star.owner == this.props.accounts[0]} />
+                                return <StarCard waitForTransaction={this.waitForTransaction.bind(this)} star={star} key={index} isStarOwner={star.owner == this.props.accounts[0]} />
                             })}
                     </div>
                 </div>
@@ -85,7 +113,7 @@ class DAppClient extends React.Component {
                         {(this.state.ownerStars.length <= 0) ?
                             <div>You don't have any stars associated to your address</div> :
                             this.state.ownerStars.map((star, index) => {
-                                return <StarCard star={star} key={index} isStarOwner={star.owner == this.props.accounts[0]} />
+                                return <StarCard waitForTransaction={this.waitForTransaction.bind(this)} star={star} key={index} isStarOwner={star.owner == this.props.accounts[0]} />
                             })}
                     </div>
                 </div>

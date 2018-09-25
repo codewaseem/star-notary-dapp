@@ -14,38 +14,14 @@ class StarCard extends React.Component {
     async putStarForSale(e) {
         e.preventDefault();
         let tx = await starNotaryClient.putStarForSale(this.props.star.id, this.state.saleFor);
-        this.txWatchId = setInterval(async () => {
-            let txReciept = await starNotaryClient.getTransactionReceipt(tx);
-            if (txReciept) {
-                clearInterval(this.txWatchId);
-                if (txReciept.status == "0x1") {
-                    alert("Transaction success. Page will be reloaded to reflect changes in the UI");
-                    location.reload();
-                } else if (txReciept.status == "0x0") {
-                    alert("Something went wrong");
-                }
-            }
-        }, 1000);
-        alert("You will be alerted soon when transaction gets completed")
+        this.props.waitForTransaction(tx);
         this.toggleForm();
     }
 
     async buyStar() {
         let { id, price } = this.props.star;
         let tx = await starNotaryClient.buyStar(id, price);
-        this.txWatchId = setInterval(async () => {
-            let txReciept = await starNotaryClient.getTransactionReceipt(tx);
-            if (txReciept) {
-                clearInterval(this.txWatchId);
-                if (txReciept.status == "0x1") {
-                    alert("Transaction success. Page will be reloaded to reflect changes in the UI");
-                    location.reload();
-                } else if (txReciept.status == "0x0") {
-                    alert("Something went wrong");
-                }
-            }
-        }, 1000);
-        alert("You will be alerted soon when transaction gets completed")
+        this.props.waitForTransaction(tx);
     }
 
     renderStarInfo(star, isStarOwner) {
@@ -117,7 +93,6 @@ class StarCard extends React.Component {
                 {this.state.showForm &&
                     this.renderSaleForm(star)
                 }
-
             </div>
         );
     }
